@@ -2,9 +2,9 @@
   "name": "martiniweb",
   "version": "0.0.0",
   "private": true,
+  "main": "bin/www.js",
   "scripts": {
-    "start": "node ./bin/www",
-    "main": "bin/www"
+    "start": "node ./bin/www.js"
   },
   "dependencies": {
     "body-parser": "~1.13.2",
