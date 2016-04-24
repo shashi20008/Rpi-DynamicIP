@@ -9,6 +9,10 @@ var firstTimestamp;
 var systemTimestamp;
 var arduinoFirstTimestamp;
 /* GET home page. */
+router.get('/', function(req, res, next) {
+	res.send("hello world!");
+});
+
 router.post('/', function(req, res, next) {
     console.log("req.body");
     console.log(req.body);

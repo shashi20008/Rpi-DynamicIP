@@ -17,7 +17,10 @@ app.set('view engine', 'jade');
 
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
-mongoose.setup('127.0.0.1','27017', 'martiniDB')
+var dbHostname = process.env.OPENSHIFT_MONGODB_DB_HOST||'127.0.0.1';
+var dbPort = process.env.OPENSHIFT_MONGODB_DB_PORT||'27017';
+
+mongoose.setup(dbHostname, dbPort, 'martini');
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
