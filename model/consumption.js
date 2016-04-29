@@ -13,6 +13,10 @@ var consumptionModel = function() {
 		},
 		deviceId: {
 			type: String
+		},
+		user: {
+			type: String,
+			unique: true
 		}
 	});
 
