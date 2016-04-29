@@ -1,6 +1,7 @@
 {
   "name": "martiniweb",
-  "version": "0.0.0",
+  "version": "0.0.1",
+  "description": "This the backend server for martini project. This project can be accessed at http://martini-trackon.rhcloud.com",
   "private": true,
   "main": "bin/www.js",
   "scripts": {
