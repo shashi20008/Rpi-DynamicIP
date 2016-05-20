@@ -49,6 +49,27 @@ router.get('/', function(req, res, next) {
   });
 });
 
+router.get('/report', function(req, res, next) {
+  console.log("in report");
+  var query = {'user' : req.query.user};
+  
+  consumptionModel.find(query, function (err, response) {
+    if(err || !response) {
+      return res.json({
+        message: "couldn't find user",
+        error: err
+      });
+    } else {
+      var startDate = req.query.startDate;
+      var endDate = req.query.endDate;
+      var getReportPromise = Q.nfcall(getReport, response[0].userData, startDate, endDate);
+      getReportPromise.then(function (reportInfo){
+        res.json (reportInfo);
+      });
+    }
+  });
+});
+
 router.post('/', function(req, res, next) {
     consumptionModel.findOne({'deviceId': req.body.deviceId}, function (err, document) {
       if(!document) {
@@ -87,6 +108,7 @@ var computeDailyData = function(userDatas, dateOfReg, callback) {
   });
 
   var avgDailyConsumption = oldConsumption/days;
+  avgDailyConsumption = (Math.round(avgDailyConsumption*100))/100;
   userDataModel.todayConsumption = todayConsumption;
   userDataModel.avgDailyConsumption = avgDailyConsumption;
   callback(null, userDataModel);
@@ -103,7 +125,7 @@ var computeMonthlyData = function(userDatas, dateOfReg, callback) {
   var regDate = new Date(new Date(dateOfReg).toJSON().slice(0,10)).getTime();
 
   var days = Math.floor((presentDate - (regDate))/(1000*60*60*24));
-  var months = parseInt(days/30)-1;
+  var months = parseInt(days/30);
   console.log(months);
 
   userDatas.forEach(function (userData){
@@ -115,7 +137,8 @@ var computeMonthlyData = function(userDatas, dateOfReg, callback) {
     }
   });
     var avgMonthlyConsumption = oldMonthsConsumption/months;
-    userDataModel.thisMonthConsumption = thisMonthConsumption;
+    avgMonthlyConsumption = (Math.round(avgMonthlyConsumption*100))/100;
+    userDataModel.monthConsumption = thisMonthConsumption;
     userDataModel.avgMonthlyConsumption = avgMonthlyConsumption;
     callback(null, userDataModel);
 };
@@ -142,6 +165,24 @@ var insertNewDocument = function(req, systemTimestamp) {
 var calculateSystemTimestamp = function(timestamp, arduinoOldTimestamp, systemOldTimestamp) {
 	var timestampDiff = timestamp - arduinoOldTimestamp;
 	systemTimestamp = systemOldTimestamp + timestampDiff;
+};
+
+var getReport = function(userDatas, startDate, endDate, callback) {
+  console.log("inside getreport");
+  var consumptionReport = {};
+  userDatas.forEach(function (userData){
+    userData = userData.toJSON();
+    if(userData.systemTimestamp >= startDate && userData.systemTimestamp <= endDate) {
+      console.log("inside if");
+      var dateKey = new Date(userData.systemTimestamp).toJSON().slice(0,10);
+      console.log("printing datekey");
+      console.log(dateKey);
+      consumptionReport[dateKey] = (consumptionReport.hasOwnProperty(dateKey))? (consumptionReport[dateKey]+ userData.capacity) : userData.capacity;
+      console.log(consumptionReport);
+    } 
+  });
+  console.log(consumptionReport);
+  callback(null, consumptionReport);
 };
 
 module.exports = router;
