@@ -7,16 +7,15 @@
 var app = require('../app');
 var debug = require('debug')('martiniweb:server');
 var http = require('http');
-
 /**
  * Get port from environment and store in Express.
  */
 
-var ipAddress = process.env.OPENSHIFT_NODEJS_IP || '0.0.0.0';
+var ipAddress = process.env.OPENSHIFT_NODEJS_IP || '127.0.0.1';
 
 var port = normalizePort(process.env.OPENSHIFT_NODEJS_PORT || '3000');
 app.set('port', port);
-
+console.log(ipAddress + ":" + port);
 /**
  * Create HTTP server.
  */
