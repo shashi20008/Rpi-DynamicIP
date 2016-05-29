@@ -1,6 +1,7 @@
 var express = require('express');
 var router = express.Router();
 var consumptionModel = require('../model/consumption');
+var trainingModel = require('../model/training');
 var Q = require('q');
 var deviceId;
 var timestamp;
@@ -26,26 +27,12 @@ router.get('/', function(req, res, next) {
         error: err
       });
     }
-    console.log(response[0]);
-    
-    // consumptionModel.find({'deviceId': response.deviceId}, function (err, deviceDatas ) {
-    //   if(err || !deviceDatas) {
-    //     return res.json({
-    //       message: "couldn't find deviceId",
-    //       error: err
-    //     });
-    //   }
-      var dailyDataPromise = Q.nfcall(computeDailyData, response[0].userData, response[0].dateOfReg);
-      var monthlyDataPromise = Q.nfcall(computeMonthlyData, response[0].userData, response[0].dateOfReg);
+    var dailyDataPromise = Q.nfcall(computeDailyData, response[0].userData, response[0].dateOfReg);
+    var monthlyDataPromise = Q.nfcall(computeMonthlyData, response[0].userData, response[0].dateOfReg);
 
-      Q.all(dailyDataPromise, monthlyDataPromise).spread(function(){
-        res.json (userDataModel);
-      })
-      // deviceDatas.forEach(function (deviceData){
-      //   totalDeviceCapacity = totalDeviceCapacity + deviceData.capacity;
-      // });
-      //res.json (response);
-    //});
+    Q.all(dailyDataPromise, monthlyDataPromise).spread(function(){
+      res.json (userDataModel);
+    });
   });
 });
 
@@ -66,6 +53,41 @@ router.get('/report', function(req, res, next) {
       getReportPromise.then(function (reportInfo){
         res.json (reportInfo);
       });
+    }
+  });
+});
+
+router.get('/getDevice', function(req, res, next) {
+  console.log("getDevice");
+  var query = {'user' : req.query.user};
+  var deviceList = [];
+  
+  trainingModel.findOne(query, function (err, response) {
+    if(err || !response) {
+      return res.json({
+        message: "couldn't find user",
+        error: err
+      });
+    } else {
+      var deviceDatas = response.deviceData;
+      deviceDatas.forEach(function (deviceData) {
+        deviceList.push({name:deviceData.deviceName, type: deviceData.deviceType});
+      });
+      res.json(deviceList);
+    }
+  });
+});
+
+router.post('/addDevice', function(req, res, next) {
+  console.log("add device");
+  console.log(req.body);
+  var query = {'user' : req.body.user};
+  
+  trainingModel.find(query, function (err, response) {
+    if(response == "") {
+      insertNewDevice(req,res);
+    } else {
+      updateDevice(req,res);
     }
   });
 });
@@ -160,6 +182,78 @@ var insertNewDocument = function(req, systemTimestamp) {
   			console.log("Success");
   		}
   	});
+};
+
+var insertNewDevice = function(req,res) {
+  var newtraining = new trainingModel ({
+      user: req.body.user,
+      deviceData: [{
+        deviceName: req.body.deviceName,
+        deviceType: req.body.deviceType,
+        trainingData: [{
+          startDate: req.body.startDate,
+          endDate: req.body.endDate
+        }]
+      }]
+  });
+
+  newtraining.save(function(err, res) {
+    if(err) {
+      console.log(err);
+      console.log("Error: Failure while adding device");
+    } else {
+      console.log("Success");
+      return res.json({"result" : "Success"});
+    }
+  });
+};
+
+var updateDevice = function(req,res) {
+  var isDevicePresent = false;
+  var deviceIndex = -1;
+  var findQuery = {'user': req.body.user};
+  var deviceName = req.body.deviceName,
+      deviceType = req.body.deviceType,
+      startDate = req.body.startDate,
+      endDate = req.body.endDate;
+
+  trainingModel.findOne(findQuery, function (err, response) {
+    var deviceDatas = response.deviceData;
+    deviceDatas.some(function (deviceData, index){
+      if(deviceData.deviceName == req.body.deviceName) {
+        isDevicePresent = true;
+        deviceIndex = index
+        return true;
+      } 
+    });
+    var pushQuery = {$push:{}};
+    if(isDevicePresent) {
+      pushQuery.$push["deviceData."+deviceIndex+ ".trainingData"] = {
+            startDate: startDate, 
+            endDate: endDate
+      };
+    } else {
+      pushQuery.$push = {
+        deviceData: {
+          deviceName: deviceName, 
+          deviceType: deviceType,
+          trainingData: {
+            startDate: startDate, 
+            endDate: endDate
+          }
+        }
+      };
+    }
+    trainingModel.update(findQuery, pushQuery, function(err, response) {
+      if(err) {
+        console.log(err);
+        console.log("Error: Failure while updating device");
+      } else {
+        console.log("Success");
+        return res.json({"result" : "Success"});
+      }
+    });
+  });
 };
 
 var calculateSystemTimestamp = function(timestamp, arduinoOldTimestamp, systemOldTimestamp) {
