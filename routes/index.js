@@ -29,8 +29,9 @@ router.get('/', function(req, res, next) {
     }
     var dailyDataPromise = Q.nfcall(computeDailyData, response[0].userData, response[0].dateOfReg);
     var monthlyDataPromise = Q.nfcall(computeMonthlyData, response[0].userData, response[0].dateOfReg);
+    var getTrendPromise = Q.nfcall(getTrendData, response[0].userData);
 
-    Q.all(dailyDataPromise, monthlyDataPromise).spread(function(){
+    Q.all(dailyDataPromise, monthlyDataPromise, getTrendPromise).spread(function(){
       res.json (userDataModel);
     });
   });
@@ -278,5 +279,50 @@ var getReport = function(userDatas, startDate, endDate, callback) {
   console.log(consumptionReport);
   callback(null, consumptionReport);
 };
+
+var getTrendData = function(userDatas, callback) {
+  var day, hour, consumption;
+  var trend = {};
+  var trendArray = [];
+  for (var i = 1; i <= 7; i++) {
+    trend[''+i] = {};
+    for (var j = 1; j <= 24; j++) {
+      trend[''+i][''+j] = 0;
+    }
+  }
+
+  userDatas.forEach(function (userData) {
+    day = new Date(userData.systemTimestamp).getDay();
+    hour = new Date(userData.systemTimestamp).getHours();
+    consumption = userData.capacity;
+
+    day = day + 1;
+    hour = hour + 1;
+
+    if(trend.hasOwnProperty(day)) {
+      if(trend[day].hasOwnProperty(hour)) {
+        trend[day][hour] = trend[day][hour] + consumption;
+      } else {
+        trend[day][hour] = consumption;
+      }
+    } else {
+      trend[day] = {};
+      trend[day][hour] = consumption;
+    }
+  });
+  
+  for (var day in trend) { 
+    for (var hour in trend[day]) {
+      trendArray.push({
+        day: parseInt(day), 
+        hour: parseInt(hour), 
+        value: trend[day][hour]})
+    } 
+  }
+  console.log(trendArray);
+  userDataModel.trendInfo= trendArray;
+  callback(null, trendArray);
+}
+
 
 module.exports = router;
