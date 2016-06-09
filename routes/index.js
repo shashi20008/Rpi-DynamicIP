@@ -16,12 +16,13 @@ var dailyCapacity = 0;
 var monthlyCapacity = 0;
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/user', function(req, res, next) {
   console.log("inside router get" + req.query.user);
   var query = {'user' : req.query.user};
 	
   consumptionModel.find(query, function (err, response) {
-    if(err || !response) {
+    if(err || !response || !Array.isArray(response) || !response[0] || !response[0].userData) {
+      console.log('no user found')
       return res.json({
         message: "couldn't find user",
         error: err
@@ -79,7 +80,7 @@ router.get('/getDevice', function(req, res, next) {
   });
 });
 
-router.post('/', function(req, res, next) {
+router.post('/data', function(req, res, next) {
   console.log("post");
     consumptionModel.findOne({'user': req.body.user}, function (err, document) {
       console.log(document);
