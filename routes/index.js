@@ -15,6 +15,10 @@ var userDataModel = {};
 var dailyCapacity = 0;
 var monthlyCapacity = 0;
 
+router.get('/', function(req, res, next) {
+  res.end('Life is good! You be good too nginx.');
+});
+
 /* GET home page. */
 router.get('/user', function(req, res, next) {
   console.log("inside router get" + req.query.user);
