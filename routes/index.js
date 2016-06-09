@@ -79,6 +79,21 @@ router.get('/getDevice', function(req, res, next) {
   });
 });
 
+router.post('/', function(req, res, next) {
+  console.log("post");
+    consumptionModel.findOne({'user': req.body.user}, function (err, document) {
+      console.log(document);
+      if(!document) {
+        console.log("inside document");
+        systemTimestamp = Date.now();
+        insertNewDocument(req, res, systemTimestamp);
+      } else {
+        console.log("update document");
+        updateDocument(req, res);
+      }
+    });
+});
+
 router.post('/addDevice', function(req, res, next) {
   console.log("add device");
   console.log(req.body);
@@ -93,96 +108,48 @@ router.post('/addDevice', function(req, res, next) {
   });
 });
 
-router.post('/', function(req, res, next) {
-    consumptionModel.findOne({'deviceId': req.body.deviceId}, function (err, document) {
-      if(!document) {
-        systemTimestamp = Date.now();
-        insertNewDocument(req, systemTimestamp);
-      } else {
-        var arduinoOldTimestamp = document.arduinoTimestamp;
-        var systemOldTimestamp = document.systemTimestamp;
-        calculateSystemTimestamp(req.body.timestamp, arduinoOldTimestamp, systemOldTimestamp);
-        insertNewDocument(req, systemTimestamp);
-      }
-    });
-
-    res.render('index', { title: 'Express' });
-});
-
-var computeDailyData = function(userDatas, dateOfReg, callback) {
-  var todayConsumption =0;
-  var oldConsumption = 0;
-  var date = new Date();
-  var startOfDay = date.setHours(0,0,0,0); //setHours returns number.. call toUTCString() in next linevar presentDate = new Date(new Date().toJSON().slice(0,10));
-  var endOfDay = date.setHours(23,59,59,999);
-  var presentDate = new Date(new Date().toJSON().slice(0,10)).getTime();
-  var regDate = new Date(new Date(dateOfReg).toJSON().slice(0,10)).getTime();
-
-  var days = Math.floor((presentDate - (regDate))/(1000*60*60*24))-1;
-  console.log(days);
-  
-  userDatas.forEach(function (userData){
-    userData = userData.toJSON();
-    if(userData.systemTimestamp >= startOfDay && userData.systemTimestamp <= endOfDay) {
-      todayConsumption = todayConsumption + userData.capacity;
-    } else {
-      oldConsumption = oldConsumption + userData.capacity;
-    }
-  });
-
-  var avgDailyConsumption = oldConsumption/days;
-  avgDailyConsumption = (Math.round(avgDailyConsumption*100))/100;
-  userDataModel.todayConsumption = todayConsumption;
-  userDataModel.avgDailyConsumption = avgDailyConsumption;
-  callback(null, userDataModel);
-};
-
-var computeMonthlyData = function(userDatas, dateOfReg, callback) {
-  var thisMonthConsumption =0;
-  var oldMonthsConsumption = 0;
-  var date = new Date();
-  var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-  var startOfMonth = Date.UTC(date.getFullYear(), date.getMonth(), 1, 0,0,0,0);
-  var endOfMonth = Date.UTC(date.getFullYear(), date.getMonth(), lastDay.getDate(), 23, 59, 59, 999);
-  var presentDate = new Date(new Date().toJSON().slice(0,10)).getTime();
-  var regDate = new Date(new Date(dateOfReg).toJSON().slice(0,10)).getTime();
-
-  var days = Math.floor((presentDate - (regDate))/(1000*60*60*24));
-  var months = parseInt(days/30);
-  console.log(months);
-
-  userDatas.forEach(function (userData){
-    userData = userData.toJSON();
-    if(userData.systemTimestamp >= startOfMonth && userData.systemTimestamp <= endOfMonth) {
-      thisMonthConsumption = thisMonthConsumption + userData.capacity;
-    } else {
-      oldMonthsConsumption = oldMonthsConsumption + userData.capacity;
-    }
-  });
-    var avgMonthlyConsumption = oldMonthsConsumption/months;
-    avgMonthlyConsumption = (Math.round(avgMonthlyConsumption*100))/100;
-    userDataModel.monthConsumption = thisMonthConsumption;
-    userDataModel.avgMonthlyConsumption = avgMonthlyConsumption;
-    callback(null, userDataModel);
-};
-
-var insertNewDocument = function(req, systemTimestamp) {
-	
+var insertNewDocument = function(req, res, systemTimestamp) {
+	console.log("inserting");
 	var newConsumption = new consumptionModel({
-  		deviceId: req.body.deviceId,
-  		systemTimestamp: systemTimestamp,
-  		arduinoTimestamp: req.body.timestamp,
-  		capacity: req.body.capacity
+    user: req.body.user,
+    dateOfReg: systemTimestamp,
+    userData: {
+      capacity: req.body.capacity,
+      systemTimestamp: systemTimestamp,
+      arduinoTimestamp: req.body.timestamp,
+    }
   	});
 
   	newConsumption.save(function(err, res) {
   		if(err) {
-  			console.log("Oops, you just received an error message");
+        console.log("Oops, you just received an error message");
+        return res.json ({'ERROR:: ':err}); 
   		}
   		else {
   			console.log("Success");
+        return res.json({"result" : "Success"});
   		}
   	});
+};
+
+var updateDocument = function(req, res){
+  console.log("updating");
+  var findQuery = {'user': req.body.user};
+  var pushQuery = {$push: {
+      userData: {
+        capacity: req.body.capacity,
+        systemTimestamp: Date.now(),
+        arduinoTimestamp: req.body.arduinoTimestamp
+      }
+    }
+  };
+  consumptionModel.update(findQuery, pushQuery, function (err, response){
+    if (err) {
+      return res.json ({'ERROR:: ':err}); 
+    } else {
+      return res.json({"result" : "Success"});
+    }
+  });
 };
 
 var insertNewDevice = function(req,res) {
@@ -255,6 +222,63 @@ var updateDevice = function(req,res) {
       }
     });
   });
+};
+
+var computeDailyData = function(userDatas, dateOfReg, callback) {
+  var todayConsumption =0;
+  var oldConsumption = 0;
+  var date = new Date();
+  var startOfDay = date.setHours(0,0,0,0); //setHours returns number.. call toUTCString() in next linevar presentDate = new Date(new Date().toJSON().slice(0,10));
+  var endOfDay = date.setHours(23,59,59,999);
+  var presentDate = new Date(new Date().toJSON().slice(0,10)).getTime();
+  var regDate = new Date(new Date(dateOfReg).toJSON().slice(0,10)).getTime();
+
+  var days = Math.floor((presentDate - (regDate))/(1000*60*60*24))-1;
+  console.log(days);
+  
+  userDatas.forEach(function (userData){
+    userData = userData.toJSON();
+    if(userData.systemTimestamp >= startOfDay && userData.systemTimestamp <= endOfDay) {
+      todayConsumption = todayConsumption + userData.capacity;
+    } else {
+      oldConsumption = oldConsumption + userData.capacity;
+    }
+  });
+
+  var avgDailyConsumption = oldConsumption/days;
+  avgDailyConsumption = (Math.round(avgDailyConsumption*100))/100;
+  userDataModel.todayConsumption = todayConsumption;
+  userDataModel.avgDailyConsumption = avgDailyConsumption;
+  callback(null, userDataModel);
+};
+
+var computeMonthlyData = function(userDatas, dateOfReg, callback) {
+  var thisMonthConsumption =0;
+  var oldMonthsConsumption = 0;
+  var date = new Date();
+  var lastDay = new Date(date.getFullYear(), date.getMonth() + 1, 0);
+  var startOfMonth = Date.UTC(date.getFullYear(), date.getMonth(), 1, 0,0,0,0);
+  var endOfMonth = Date.UTC(date.getFullYear(), date.getMonth(), lastDay.getDate(), 23, 59, 59, 999);
+  var presentDate = new Date(new Date().toJSON().slice(0,10)).getTime();
+  var regDate = new Date(new Date(dateOfReg).toJSON().slice(0,10)).getTime();
+
+  var days = Math.floor((presentDate - (regDate))/(1000*60*60*24));
+  var months = parseInt(days/30);
+  console.log(months);
+
+  userDatas.forEach(function (userData){
+    userData = userData.toJSON();
+    if(userData.systemTimestamp >= startOfMonth && userData.systemTimestamp <= endOfMonth) {
+      thisMonthConsumption = thisMonthConsumption + userData.capacity;
+    } else {
+      oldMonthsConsumption = oldMonthsConsumption + userData.capacity;
+    }
+  });
+    var avgMonthlyConsumption = oldMonthsConsumption/months;
+    avgMonthlyConsumption = (Math.round(avgMonthlyConsumption*100))/100;
+    userDataModel.monthConsumption = thisMonthConsumption;
+    userDataModel.avgMonthlyConsumption = avgMonthlyConsumption;
+    callback(null, userDataModel);
 };
 
 var calculateSystemTimestamp = function(timestamp, arduinoOldTimestamp, systemOldTimestamp) {

@@ -21,9 +21,6 @@ var consumptionModel = function() {
 			},
 			arduinoTimestamp: {
 				type: Number
-			},
-			deviceId: {
-				type: String
 			}
 		}]
 	});
