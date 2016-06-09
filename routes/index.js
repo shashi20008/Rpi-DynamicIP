@@ -144,7 +144,7 @@ var updateDocument = function(req, res){
       userData: {
         capacity: req.body.capacity,
         systemTimestamp: Date.now(),
-        arduinoTimestamp: req.body.arduinoTimestamp
+        arduinoTimestamp: req.body.timestamp
       }
     }
   };
