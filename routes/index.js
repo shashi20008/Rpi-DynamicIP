@@ -3,6 +3,7 @@ var router = express.Router();
 var consumptionModel = require('../model/consumption');
 var trainingModel = require('../model/training');
 var Q = require('q');
+var _ = require('underscore');
 var deviceId;
 var timestamp;
 var capacity;
@@ -35,6 +36,7 @@ router.get('/user', function(req, res, next) {
     var dailyDataPromise = Q.nfcall(computeDailyData, response[0].userData, response[0].dateOfReg);
     var monthlyDataPromise = Q.nfcall(computeMonthlyData, response[0].userData, response[0].dateOfReg);
     var getTrendPromise = Q.nfcall(getTrendData, response[0].userData);
+    var leakyBucketsPromise = Q.nfcall(detectLeakyBuckets, response[0].userData);
 
     Q.all(dailyDataPromise, monthlyDataPromise, getTrendPromise).spread(function(){
       res.json (userDataModel);
@@ -285,6 +287,48 @@ var computeMonthlyData = function(userDatas, dateOfReg, callback) {
     userDataModel.avgMonthlyConsumption = avgMonthlyConsumption;
     callback(null, userDataModel);
 };
+
+function detectLeakyBuckets(userData, cb) {
+  if(!userData || userData.length <= 0 ) {
+    return cb();
+  }
+
+  var msInDay = 1000 * 60 * 60 * 24,
+      end = Date.now(),
+      start = now - msInDay,
+      allData = [];
+
+  userData.forEach(function(entry) {
+    entry  = entry.toJSON();
+    if(entry.systemTimestamp >= start && entry.systemTimestamp <= end) {
+      allData.push({
+        systemTimestamp: entry.systemTimestamp,
+        capacity: entry.capacity
+      });
+    }
+  });
+
+  allData = _.sortBy(allData, 'systemTimestamp');
+  var unused = 0,
+      prev = allData[0].systemTimestamp - 1,
+      cur  = 0;
+  for(var i = 0; i < allData.length; i++) {
+    cur = allData[i].systemTimestamp;
+    if(Math.floor(allData[i].capacity / (cur - prev) * 1000) == 0) {
+      unused += (cur - prev);
+    }
+    prev = cur;
+  }
+
+  if(unused <= 3600000) { // Only switched off for an hour?? Lavish household.
+    userDataModel.leaky = true;
+  } else {
+    userDataModel.leaky = false;
+  }
+
+  return cb(null, userDataModel);
+
+}
 
 var calculateSystemTimestamp = function(timestamp, arduinoOldTimestamp, systemOldTimestamp) {
 	var timestampDiff = timestamp - arduinoOldTimestamp;
