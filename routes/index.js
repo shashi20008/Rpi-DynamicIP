@@ -16,60 +16,6 @@ var userDataModel = {};
 var dailyCapacity = 0;
 var monthlyCapacity = 0;
 
-router.get('/random', function(req, res, next) {
-  var time = 3600*1000*24;
-  var d = Date.now() - time;
-  var storeTime = d + Math.random()*time;
-  var findQuery = {'user': "martiniweb"};
-  consumptionModel.findOne({'user': "martiniweb"}, function (err, document) {
-      console.log(document);
-      if(!document) {
-              console.log("inside document");
-              var newConsumption = new consumptionModel({
-                user: "martiniweb",
-                dateOfReg: 1456770600000,
-                userData: {
-                  capacity: Math.floor(Math.random()*200),
-                  systemTimestamp: Math.floor(storeTime),
-                  arduinoTimestamp: Math.floor(storeTime)
-                }
-              });
-
-              newConsumption.save(function(err, res) {
-                if(err) {
-                  console.log("Oops, you just received an error message");
-                  // return res.json ({'ERROR:: ':err}); 
-                }
-                else {
-                  console.log("Success");
-                  // return res.json({"result" : "Success"});
-                }
-              });
-      } else {
-        console.log("update document");
-        for(var i = 0; i<=20; i++) {
-          storeTime = d + Math.random()*time;
-
-          var pushQuery = {$push: {
-            userData: {
-              capacity: 3600,
-                systemTimestamp: Math.floor(storeTime),
-                arduinoTimestamp: Math.floor(storeTime)
-            }
-          }
-        };
-          consumptionModel.update(findQuery, pushQuery, function (err, response){
-            if (err) {
-              //return res.json ({'ERROR:: ':err}); 
-            } else {
-              //return res.json({"result" : "Success"});
-            }
-          });
-        }
-      }
-    });
-});
-
 router.get('/', function(req, res, next) {
   res.end('Life is good! You be good too nginx.');
 });
@@ -398,6 +344,7 @@ function detectLeakyBuckets(userData, cb) {
   } else {
     userDataModel.leaky = false;
   }
+  console.log(userDataModel);
 
   return cb(null, userDataModel);
 
