@@ -72,10 +72,7 @@ router.get('/getDevice', function(req, res, next) {
   
   trainingModel.findOne(query, function (err, response) {
     if(err || !response) {
-      return res.json({
-        message: "couldn't find user",
-        error: err
-      });
+      return res.json([]);
     } else {
       var deviceDatas = response.deviceData;
       deviceDatas.forEach(function (deviceData) {
