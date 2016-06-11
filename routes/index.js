@@ -17,8 +17,8 @@ var dailyCapacity = 0;
 var monthlyCapacity = 0;
 
 router.get('/random', function(req, res, next) {
-  var time = 3600*1000*24*103;
-  var d = 1456770600000;
+  var time = 3600*1000*24;
+  var d = Date.now() - time;
   var storeTime = d + Math.random()*time;
   var findQuery = {'user': "martiniweb"};
   consumptionModel.findOne({'user': "martiniweb"}, function (err, document) {
@@ -47,12 +47,12 @@ router.get('/random', function(req, res, next) {
               });
       } else {
         console.log("update document");
-        for(var i = 0; i<=50; i++) {
+        for(var i = 0; i<=20; i++) {
           storeTime = d + Math.random()*time;
 
           var pushQuery = {$push: {
             userData: {
-              capacity: Math.floor(Math.random()*200),
+              capacity: 3600,
                 systemTimestamp: Math.floor(storeTime),
                 arduinoTimestamp: Math.floor(storeTime)
             }
