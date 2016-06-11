@@ -92,7 +92,7 @@ router.get('/user', function(req, res, next) {
     var getTrendPromise = Q.nfcall(getTrendData, response[0].userData);
     var leakyBucketsPromise = Q.nfcall(detectLeakyBuckets, response[0].userData);
 
-    Q.all(dailyDataPromise, monthlyDataPromise, getTrendPromise).spread(function(){
+    Q.all(dailyDataPromise, monthlyDataPromise, getTrendPromise, leakyBucketsPromise).spread(function(){
       res.json (userDataModel);
     });
   });
@@ -343,15 +343,21 @@ var computeMonthlyData = function(userDatas, dateOfReg, callback) {
 };
 
 function detectLeakyBuckets(userData, cb) {
+
+  console.log('detectLeakyBuckets');
   if(!userData || userData.length <= 0 ) {
+    console.log('nothing provided.');
     return cb();
   }
 
-  var msInDay = 1000 * 60 * 60 * 24,
+  console.log('declaring vars..');
+
+  var msInDay = 1000 * 60 * 60 * 24
       end = Date.now(),
-      start = now - msInDay,
+      start = end - msInDay,
       allData = [];
 
+  console.log('foreaching: ', start, end);
   userData.forEach(function(entry) {
     entry  = entry.toJSON();
     if(entry.systemTimestamp >= start && entry.systemTimestamp <= end) {
@@ -362,17 +368,30 @@ function detectLeakyBuckets(userData, cb) {
     }
   });
 
+  console.log('foreached: ', allData.length);
+
+  if(allData.length <= 0) {
+    userDataModel.leaky = false;
+    return cb(null, userDataModel);
+  }
+
   allData = _.sortBy(allData, 'systemTimestamp');
   var unused = 0,
       prev = allData[0].systemTimestamp - 1,
       cur  = 0;
+
+  console.log('allData.length', allData.length);
   for(var i = 0; i < allData.length; i++) {
     cur = allData[i].systemTimestamp;
-    if(Math.floor(allData[i].capacity / (cur - prev) * 1000) == 0) {
+    console.log('ding... ', prev, ' .. ', cur, ' .. ', (cur - prev), ' .. ', allData[i].capacity, ' .. ', (allData[i].capacity / (cur - prev) * 1000));
+
+    if((allData[i].capacity / (cur - prev) * 1000) <= 0.01) {
       unused += (cur - prev);
     }
     prev = cur;
   }
+
+  console.log('unused: ', unused);
 
   if(unused <= 3600000) { // Only switched off for an hour?? Lavish household.
     userDataModel.leaky = true;
