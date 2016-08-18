@@ -1,0 +1,14 @@
+extends layout
+
+block content
+  div.module
+    div.module-header
+      h1 Login to your account
+    div.module-content
+      form(action='/login', method='POST')
+        div.row.col-md-12
+          input.form-control(type='text', name='username', placeholder='Email id')
+        div.row.col-md-12
+          input.form-control(tpye='password', name='password', placeholder='Password')
+        div.row.col-md-12
+          input.btn.btn-primary(type='submit', name='login', value='login')

@@ -6,3 +6,16 @@ body {
 a {
   color: #00B7FF;
 }
+
+.btn-primary {
+	width: 100%;
+}
+
+.module {
+	width: 400px;
+	margin: 0 auto;
+}
+
+.row {
+	margin-top: 20px;
+}
