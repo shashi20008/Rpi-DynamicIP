@@ -23,6 +23,18 @@ var dbHostname = process.env.OPENSHIFT_MONGODB_DB_HOST||'127.0.0.1';
 var dbPort = process.env.OPENSHIFT_MONGODB_DB_PORT||'27017';
 
 mongoose.setup(dbHostname, dbPort, 'martini');
+app.use(function(req, res, next) {
+  var schema = req.headers['x-forwarded-proto'];
+
+  if (schema === 'https') {
+    // Already https; don't do anything special.
+    next();
+  }
+  else {
+    // Redirect to https.
+    res.redirect('https://' + req.headers.host + req.url);
+  }
+});
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
