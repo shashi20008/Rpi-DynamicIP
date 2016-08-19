@@ -64,7 +64,7 @@ router.post('/register', registrationController.process);
 router.get('/home', authorize({failureRedirect: '/login' }), homeScreenController.process);
 router.post('/home', authorize({failureRedirect: '/login' }), homeScreenController.update);
 router.get('/dyn-dns', authorize({failureRedirect: '/login' }), dynamicDNSController.process);
-router.get('/dyn-dns', authorize({failureRedirect: '/login' }), dynamicDNSController.update);
+router.post('/dyn-dns', passport.authenticate('local', {failureRedirect: '/login' }), dynamicDNSController.update);
 
 router.get('/logout', authorize({failureRedirect: '/login' }), function(req, res) {
 	req.logout();
