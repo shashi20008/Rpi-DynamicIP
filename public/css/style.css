@@ -1,5 +1,5 @@
 body {
-  padding: 50px;
+  padding: 0;
   font: 14px "Lucida Grande", Helvetica, Arial, sans-serif;
 }
 
@@ -18,4 +18,40 @@ a {
 
 .row {
 	margin-top: 20px;
+}
+
+.form-error {
+    border-color: #cc3e4f;
+    box-shadow: 0 0 3px #cc0000;
+}
+
+.sidebar {
+    position: absolute;
+	bottom: 0px;
+    top: 0px;
+	background: black;
+	list-style: none;
+}
+
+.sidebar a {
+	color: #cfcfcf;
+	text-decoration: none;
+}
+
+.sidebar-brand {
+	color: #cfcfcf;
+	padding: 15px;
+	font-size: 1.72em;
+}
+.sidebar-brand a:hover {
+	color:#fafafa;
+}
+.sidebar-item {
+	padding: 7px 15px;
+}
+.sidebar-item a {
+	color:#adadad;
+}
+.sidebar-item a:hover {
+	color:#fafafa;
 }

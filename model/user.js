@@ -8,7 +8,7 @@ var UserModel = function() {
 		password: {
 			type:String
 		},
-		emailid: {
+		email: {
 			type:String,
 			unique: true
 		},

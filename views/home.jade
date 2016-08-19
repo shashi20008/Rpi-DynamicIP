@@ -1,0 +1,27 @@
+extends layout
+
+block content
+	div.container-fluid
+		div.row
+			div.col-md-3
+			ul.col-md-3.sidebar
+				li.sidebar-brand 
+					a(href='/?hl=home') My Home
+				li.sidebar-item 
+					a(href='/?hl=myip') Get my IP
+				li.sidebar-item 
+					a(href='/?hl=mydevices') My devices
+				li.sidebar-item 
+					a(href='/?hl=router-setup') Router setup
+				li.sidebar-item 
+					a(href='/?hl=rpi-setup') RPi setup
+
+			div.col-md-9
+				if hl == 'rpi-setup'
+					p this is rpi setup page
+				else if hl == 'router-setup'
+					p this is router setup page
+				else if hl == 'mydevices'
+					p this is my devices page
+				else 
+					p this is my ip page
