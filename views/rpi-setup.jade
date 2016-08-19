@@ -9,6 +9,9 @@ ol#rpiSetup.setup
 		p.command su - pi -c '/usr/bin/vncserver :1 -geometry 1366x768 -depth 24'
 	li 
 		Download IP update script from 
-		a(href='/rpi-script.sh') here
-	li Put rpi-script.sh in $HOME folder and, make it executable.
-	li Set rpi-script.sh to start automatically.
+		a(href='/scripts/rpi-ip-update.sh') here
+	li Copy rpi-ip-update.sh to /usr/bin folder and, make it executable.
+	li Setup cron tab to execute the script every two minutes.
+	div.command-highlight
+		p.command crontab -e
+		p.command */2 * * * * /usr/local/bin/rpi-ip-update.sh >> /dev/null 2>&1
