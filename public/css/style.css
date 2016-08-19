@@ -55,3 +55,18 @@ a {
 .sidebar-item a:hover {
 	color:#fafafa;
 }
+
+
+.setup {
+	margin-top: 17px;
+}
+.setup li {
+	margin-top: 7px;
+}
+.command-highlight {
+	border-radius: 4px;
+	border: 1px solid gray;
+	padding: 7px;
+	margin-top: 10px;
+	background-color: #dfdfdf;
+}

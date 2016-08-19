@@ -1,0 +1,14 @@
+h1 RPi Setup
+ol#rpiSetup.setup
+	li Install tightvncserver for enabling vnc support
+	p.command-highlight sudo apt-get install tightvncserver
+	li Set tightvncserver to start automatically when system starts
+	div.command-highlight
+		p.command sudo nano /etc/rc.local
+		p.instruction append to end of file:
+		p.command su - pi -c '/usr/bin/vncserver :1 -geometry 1366x768 -depth 24'
+	li 
+		Download IP update script from 
+		a(href='/rpi-script.sh') here
+	li Put rpi-script.sh in $HOME folder and, make it executable.
+	li Set rpi-script.sh to start automatically.

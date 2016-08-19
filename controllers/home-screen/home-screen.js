@@ -5,6 +5,7 @@ var setInitialModel = function(req, res, next) {
 	if(req.query.hl) {
 		req.model.hl = req.query.hl;
 	}
+	req.model.currentIp = req.user.currentIp || 'undefined';
 	if(typeof next === 'function') {
 		return next();
 	}

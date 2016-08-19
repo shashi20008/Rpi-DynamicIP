@@ -1,0 +1,19 @@
+h1 Router Setup
+ol.setup#routerSetup
+	li Setup a static ip for RPi.
+	div.command-highlight
+		p.command sudo nano /etc/network/interfaces
+		p.instruction After line "allow-hotplug wlan0" insert:
+		p.command iface wlan0 inet static
+		p.command address 192.168.1.254
+		p.command netmask 255.255.255.0
+		p.command gateway 192.168.1.1
+
+	div.command-highlight
+		p.instruction 
+			strong Note:
+		p replace ip address with the static address you wish to assign. Replace gateway address with your Router's address.
+
+	li Follow instructions on 
+		a(href='http://www.wikihow.com/Set-Up-Port-Forwarding-on-a-Router') http://www.wikihow.com/Set-Up-Port-Forwarding-on-a-Router
+		|  to setup port forwarding for ssh (port 22) and vnc (port 5901) to your rpi IP address.

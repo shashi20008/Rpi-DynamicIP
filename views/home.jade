@@ -15,13 +15,15 @@ block content
 					a(href='/?hl=router-setup') Router setup
 				li.sidebar-item 
 					a(href='/?hl=rpi-setup') RPi setup
+				li.sidebar-item
+					a(href='/logout') Logout
 
 			div.col-md-9
 				if hl == 'rpi-setup'
-					p this is rpi setup page
+					include ./rpi-setup.jade
 				else if hl == 'router-setup'
-					p this is router setup page
+					include ./router-setup.jade
 				else if hl == 'mydevices'
-					p this is my devices page
+					include ./devices.jade
 				else 
-					p this is my ip page
+					include ./ip-info.jade
