@@ -31,7 +31,7 @@ passport.serializeUser(function(user, done) {
 });
 
 passport.deserializeUser(function(username, done) {
-	console.log('deserializing..', user);
+	console.log('deserializing..', username);
 	UserModel.findOne({email:username}, function(err, user) {
 		done(null, user);
 	});
