@@ -1,6 +1,15 @@
 h1 Your Devices
-h4= '<Work in progress>'
-
-div.command-highlight
-	p Come back to this page for ssh/vnc access right from your browser.
-	p Currently you can copy your ip address and use ssh/vnc client to connect to your RPi
+div.module
+	div.module-header
+		h3 Raspberry Pi
+	div.module-content
+		img#piImg(src='https://www.raspberrypi.org/wp-content/uploads/2016/02/Pi_3_Model_B.png', width='400px')
+		input(type='hidden', name='ip', value='#{currentIp}')
+		button.btn.btn-primary#vcnButton(onclick='move2VNC()') Connect via VNC
+		script
+			| function move2VNC() {
+			| 	var ip = $('input[name="ip"]').val(),
+			|		host = 'http://' + ip + ':5903';
+			|	console.log(host);
+			|	window.location.href = host;
+			| }
