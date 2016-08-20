@@ -2,7 +2,7 @@ var UserModel = require('../../model/user');
 
 var DynamicDNSController = {
 	process: function(req, res) {
-
+		res.end(req.user.currentIp);
 	},
 	update: function(req, res) {
 		console.log('ip is ', req.body.ip);

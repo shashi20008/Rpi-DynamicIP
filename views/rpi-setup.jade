@@ -1,17 +1,34 @@
 h1 RPi Setup
 ol#rpiSetup.setup
 	li Install tightvncserver for enabling vnc support
-	p.command-highlight sudo apt-get install tightvncserver
-	li Set tightvncserver to start automatically when system starts
+	p.command-highlight $ sudo apt-get install tightvncserver screen
+	li Get noVNC to enable browser VNC support
+	div.command-highlight 
+		p.command $ cd /usr/local/share/
+		p.command $ sudo git clone git://github.com/kanaka/noVNC
+		p.command $ cd noVNC
+		p.command $ sudo cp vnc_auto.html index.html
+		p.command $ cd utils
+		p.command $ sudo ./launch.sh
+		p.instruction The screen will display:
+			i "No installed websockify, attempting to clone websockify..."
+		p.instruction Wait until 
+			i "Press Ctrl-C to exit"
+			|  message is displayed.
+		p.instruction Press Ctrl-C
+
+	li Set tightvncserver and noVNC to start automatically when system starts
 	div.command-highlight
-		p.command sudo nano /etc/rc.local
+		p.command $ sudo nano /etc/rc.local
 		p.instruction append to end of file:
 		p.command su - pi -c '/usr/bin/vncserver :1 -geometry 1366x768 -depth 24'
-	li 
-		Download IP update script from 
+		p.command screen -S noVNC -dms noVNC /usr/local/share/noVNC/utils/launch.sh --vnc localhost:5901 --listen 5903
+
+	li Download IP update script from 
 		a(href='/scripts/rpi-ip-update.sh') here
 	li Copy rpi-ip-update.sh to /usr/bin folder and, make it executable.
 	li Setup cron tab to execute the script every two minutes.
 	div.command-highlight
-		p.command crontab -e
-		p.command */2 * * * * /usr/local/bin/rpi-ip-update.sh >> /dev/null 2>&1
+		p.command $ crontab -e
+		append to end of file:
+		p.command */2 * * * * /usr/bin/rpi-ip-update.sh >> /dev/null 2>&1
