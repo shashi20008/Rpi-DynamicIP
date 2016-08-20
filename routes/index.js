@@ -27,12 +27,14 @@ passport.use(new LocalStrategy(function(username, password, done){
 
 passport.serializeUser(function(user, done) {
 	console.log('serializing..', user);
-	done(null, user);
+	done(null, user.email);
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function(username, done) {
 	console.log('deserializing..', user);
-  done(null, user);
+	UserModel.findOne({email:username}, function(err, user) {
+		done(null, user);
+	});
 });
 
 /* Add role based authorization */
